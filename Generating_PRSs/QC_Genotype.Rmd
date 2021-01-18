@@ -4,10 +4,14 @@ output: github_document
 ---
 
 # Initial Quality Control of the Genotype data
-n1686: contains all raw output and filtered SNP data following TOPmed imputation for n=1686 ROS/MAP subjects genotyped on the Illumina HumanOmniExpress Chip
-n381: contains all raw output and filtered SNP data following TOPmed imputation for n=381 ROS/MAP subjects genotyped on the Affymetrix 6.0 Chip
+
+*n1686*: contains all raw output and filtered SNP data following TOPmed imputation for n=1686 ROS/MAP subjects genotyped on the Illumina HumanOmniExpress Chip
+
+*n381*: contains all raw output and filtered SNP data following TOPmed imputation for n=381 ROS/MAP subjects genotyped on the Affymetrix 6.0 Chip
 merged: contains merged filesets combining n=1686 and n=381 subjects for consolidated analyses
+
 ## SNP QC
+
 We are using imputed data of the ROS/MAP cohort study. The genotype data was filtered with  the following criteria:
 
 * imputation R2 < 0.8
