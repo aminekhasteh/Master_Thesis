@@ -1,11 +1,9 @@
----
-title: "Generating PRS (PRSice)"
-output: github_document
----
+Generating PRS (PRSice)
+================
 
 # Using PRSice v2.3.3
 
-```{bash eval=FALSE, include=TRUE}
+``` bash
 #!/bin/bash --login
 #SBATCH --time=45:00:00
 #SBATCH --nodes=1
@@ -20,10 +18,10 @@ START=$(date +%s.%N)
 while read url <&3 && read pheno_names <&4; do
     wget $url 
     gunzip -c *.bgz > $pheno_names
-	  rm *.bgz
-	  python /external/rprshnas01/netdata_kcni/dflab/team/ak/Thesis/UK_BioBank_7k_pheno/PRS_PRSice/py_files/clean_data_overlap_1.py ###############
+      rm *.bgz
+      python /external/rprshnas01/netdata_kcni/dflab/team/ak/Thesis/UK_BioBank_7k_pheno/PRS_PRSice/py_files/clean_data_overlap_1.py ###############
     rm *.tsv
-    	/external/rprshnas01/netdata_kcni/dflab/team/ak/PRSice_linux \ 
+        /external/rprshnas01/netdata_kcni/dflab/team/ak/PRSice_linux \ 
           --A1 A1 \
           --A2 A2 \
           --all-score  \
@@ -39,8 +37,8 @@ while read url <&3 && read pheno_names <&4; do
           --no-regress  \
           --out /external/rprshnas01/netdata_kcni/dflab/team/ak/Thesis/UK_BioBank_7k_pheno/PRS_PRSice/PRS/$pheno_names \
           --pvalue P \
-	      --snp SNP \
-	      --print-snp \
+          --snp SNP \
+          --print-snp \
           --stat BETA \
           --target /external/rprshnas01/netdata_kcni/dflab/team/ak/Thesis/QC_Geno/ROSMAP/ROSMAP_QC_rsid/ROSMAP.QC \
           --thread 2
@@ -50,5 +48,4 @@ done 3< /external/rprshnas01/netdata_kcni/dflab/team/ak/Thesis/UK_BioBank_7k_phe
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 echo $DIFF
-
 ```
