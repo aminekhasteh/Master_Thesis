@@ -3,34 +3,37 @@ title: "Exploring with PRSs and ROS/MAP"
 output: github_document
 ---
 
+## Packages and importing datasets:
+
 ```{r setup, include=FALSE}
 library(data.table)
-library(xlsx)
+library(openxlsx)
 library(rms)
 library(limma)
+library(ggplot2)
 library(factoextra)
 library(diptest)
 library(corrplot)
 
-source("/Users/dfelsky/Documents/scripts/make_ROSmaster_feb12019.R")
-setwd("/Users/dfelsky/Documents/Amin_PRS_study/")
+ROSmaster <- readRDS("C:/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
 
-meta_pheno <- read.xlsx("/Users/dfelsky/Documents/data/summarystats/panUKBB/Pan-UK Biobank phenotype manifest.xlsx",header=T,sheetIndex = 1)
+meta_pheno <- read.csv("C:/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/Sum_Stats/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv")
 
-geno_pcs <- read.table("/Users/dfelsky/Documents/Amin_PRS_study/Data_files/PCA_Geno/geno_qc.eigenvec.txt",header=F)
+geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
 
-prs_filenames <- list.files("/Users/dfelsky/Documents/Amin_PRS_study/Data_files/PRS_PLINK/",full.names = T)
+prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK/",full.names = T)
 
 # read in PRS files
 prs_list <- list()
-for (prsfile in prs_filenames) {
+for (prsfile in prs_filenames[1:10]) {
   prs_list[[tail(strsplit(prsfile,split="/")[[1]],n=1)]] <- as.data.frame(fread(prsfile,header=T,sep=","))
 }
+```
 
-#########################################
-#### LOOP for PCA analysis
+## LOOP for PCA analysis
 
+```{r setup, include=FALSE}
 dsets_torun <- names(prs_list)
 
 results1 <- list()
@@ -93,21 +96,30 @@ for (thresh in dsets_torun) {
   saveRDS(allres,file=paste0("PCAresults_",pval,".rds"))
   results1[[pval]] <- allres
 }
+```
 
-#### flag scores with multimodal distributions
+
+```{r setup, include=FALSE}
+prs_matrix_0.0001 <- as.data.frame(results1$p_val_0_0001$residuals[,-1158])
+names(prs_matrix_0.0001) <- c(paste0('V',c(1:(dim(prs_matrix_0.0001)[2]))))
+clusters <- hclust(dist(t(prs_matrix_0.0001)))
+plot(clusters, col='lightblue',xlab=' ', main =paste0('Dendogram of PRS of ',
+                                                      dim(prs_matrix_0.0001)[2],' phenotypes'))
+                                                      
+                                                      
+clusters1 <- hclust(dist(prs_matrix_0.0001))
+plot(clusters1, col='lightblue',xlab=' ', main =paste0('Dendogram of PRS of individuals of ',
+                                                      dim(prs_matrix_0.0001)[1],' individuals'))
+
+
+fviz_eig(results1$p_val_0_0001$pca,ncp = 10)
+#rownames(results1$p_val_0_05$res.var$cos2)[order(results1$p_val_0_05$res.var$cos2[,8])][1:10]
+heatmap(as.matrix(results1$p_val_0_0001$residuals[,-1158]))
+``` 
+## flag scores with multimodal distributions
 
 # visualize PCA
-fviz_eig(results1$p_val_1e_05$pca,ncp = 10)
-#rownames(results1$p_val_0_05$res.var$cos2)[order(results1$p_val_0_05$res.var$cos2[,8])][1:10]
-
-ggplot(data=pheno_pcs2,aes(x=PC1,y=PC2))+
-  geom_point()+
-  #geom_point(data=subset(pheno_pcs2,IID %in% highlightiid),col="red",size=3)+
-  #geom_smooth(method="lm")+
-  theme_minimal()
-
-heatmap(as.matrix(results1$p_val_5e_08$residuals[,-104]))
-
+```{r setup, include=FALSE}
 # merge with phenotype data
 
 
