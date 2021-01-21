@@ -3,9 +3,6 @@ Hierarchical Clustering of the PRSs matrices
 
 # Dendograms
 
-First, we create clusters of the residuals matrix for both individuals
-and phenotypes.
-
 We take a look at the Dendogram of the phenotypes of the residuals of
 the PRSs.
 
@@ -26,9 +23,9 @@ for(prs_matrix in names(results1)){
                 # And plot:
                 par(mar = c(3, 3, 3, 7))
                 if(prs_matrix == 'PCAresults_p_val_1.rds'){
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Pheno_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
-                                     width = 1000, height = 1200)
+                                     width = 1200, height = 1500)
                                 plot(dend, cex.main=1,
                                      main =paste0('Dendogram of PRSs of phenotypes of ',
                                                   dim(matrix)[1],' individuals',"\n",
@@ -41,9 +38,9 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                                 
                 } else {
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Pheno_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
-                                     width = 1000, height = 1200)
+                                     width = 1200, height = 1500)
                                 plot(dend, cex.main=1,
                                      main =paste0('Dendogram of PRSs of phenotypes of ',
                                                   dim(matrix)[1],' individuals',"\n",
@@ -80,9 +77,9 @@ for(prs_matrix in names(results1)){
                 # And plot:
                 par(mar = c(3, 3, 3, 7))
                 if(prs_matrix == 'PCAresults_p_val_1.rds'){
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Ind_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
-                                     width = 1000, height = 1200)
+                                     width = 1200, height = 1500)
                                 plot(dend, cex.main=1,
                                      main =paste0('Dendogram of PRSs of individuals of ',
                                                   dim(matrix)[1],' individuals',"\n",
@@ -95,9 +92,9 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                                 
                 } else {
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Ind_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
-                                     width = 1000, height = 1200)
+                                     width = 1200, height = 1500)
                                 plot(dend, cex.main=1,
                                      main =paste0('Dendogram of PRSs of individuals of ',
                                                   dim(matrix)[1],' individuals',"\n",
