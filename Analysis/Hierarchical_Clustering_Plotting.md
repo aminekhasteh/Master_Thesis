@@ -1,7 +1,7 @@
 Hierarchical Clustering of the PRSs matrices
 ================
 
-# Hierarchical Clustering
+# Dendograms
 
 First, we create clusters of the residuals matrix for both individuals
 and phenotypes.
@@ -26,7 +26,7 @@ for(prs_matrix in names(results1)){
                 # And plot:
                 par(mar = c(3, 3, 3, 7))
                 if(prs_matrix == 'PCAresults_p_val_1.rds'){
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1000, height = 1200)
                                 plot(dend, cex.main=1,
@@ -41,7 +41,7 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                                 
                 } else {
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1000, height = 1200)
                                 plot(dend, cex.main=1,
@@ -80,7 +80,7 @@ for(prs_matrix in names(results1)){
                 # And plot:
                 par(mar = c(3, 3, 3, 7))
                 if(prs_matrix == 'PCAresults_p_val_1.rds'){
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1000, height = 1200)
                                 plot(dend, cex.main=1,
@@ -95,7 +95,7 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                                 
                 } else {
-                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendogram_",
+                                jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1000, height = 1200)
                                 plot(dend, cex.main=1,
