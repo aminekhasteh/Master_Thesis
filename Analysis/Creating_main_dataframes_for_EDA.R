@@ -1,11 +1,3 @@
----
-title: "Creating the dataframes for EDA"
-output: github_document
----
-                
-## Packages and importing datasets:
-                
-```{r setup, include=FALSE}
 library(data.table)
 library(openxlsx)
 library(rms)
@@ -36,7 +28,7 @@ for (prsfile in prs_filenames[1:10]) {
 ```{r setup, include=FALSE}
 dsets_torun <- names(prs_list)
 
-results1 <- list()
+r <- list()
 for (thresh in dsets_torun) {
                 pval <- gsub(".txt","",thresh)
                 print(paste("Starting run, p-value threshold=",pval))
@@ -83,17 +75,32 @@ for (thresh in dsets_torun) {
                 res.var <- get_pca_var(respca)
                 res.ind <- get_pca_ind(respca)
                 
-                # Save files in list
-                print(paste("Saving data"))
+                # Changing res.clean --> dataframe
                 res.clean <- as.data.frame(res.clean)
                 res.clean$IID <- formod$IID
+                
+                # Calculate subject and variable Hierarchical clustering
+                print(paste("Calculating variable and subject Hierarchical clustering"))
+                
+                matrix <- res.clean[,-dim(res.clean)[2]]
+                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[2])))) # Need to come up with a better way of labeling the phenotypes
+                pheno_clusters <- hclust(dist(t(matrix)))
+                
+                matrix <- res.clean[,-dim(res.clean)[2]]
+                matrix <- t(matrix)
+                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[1])))) # Need to come up with a way of categorizing the particpants
+                individual_clusters <- hclust(dist(t(matrix)))
+                
+                # Save files in list
+                print(paste("Saving data"))
+
                 allres <- list(residuals=res.clean,
                                multimodal=multimodal.names,
                                pca=respca,
                                res.var=res.var,
-                               res.ind=res.ind)
+                               res.ind=res.ind,
+                               clust.var=pheno_clusters,
+                               clust.ind=individual_clusters)
                 
                 saveRDS(allres,file=paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK_resid/", "PCAresults_",pval,".rds"))
-                results1[[pval]] <- allres
 }
-```
