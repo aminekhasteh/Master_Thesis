@@ -28,7 +28,7 @@ for(prs_matrix in names(results1)){
                                      width = 1200, height = 1500)
                                 plot(dend, cex.main=1.25,
                                      main =paste0('Dendogram of PRSs at phenotypes level',"\n",
-                                                  dim(matrix)[1],' individuals',"\n",
+                                                  dim(clusters[[1]])[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   unlist(strsplit(prs_matrix, "[_.]"))[4]),
                                      horiz =  TRUE,
@@ -43,7 +43,7 @@ for(prs_matrix in names(results1)){
                                      width = 1200, height = 1500)
                                 plot(dend, cex.main=1.25,
                                      main =paste0('Dendogram of PRSs at phenotypes level',"\n",
-                                                  dim(matrix)[1],' individuals',"\n",
+                                                  dim(clusters[[1]])[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   paste0(unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
                                                          unlist(strsplit(prs_matrix, "[_.]"))[5])),
@@ -82,7 +82,7 @@ for(prs_matrix in names(results1)){
                                      width = 1200, height = 1500)
                                 plot(dend, cex.main=1.25,
                                      main =paste0('Dendogram of PRSs at individuals level',"\n",
-                                                  dim(matrix)[1],' individuals',"\n",
+                                                  dim(clusters[[1]])[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   unlist(strsplit(prs_matrix, "[_.]"))[4]),
                                      horiz =  TRUE,
@@ -97,7 +97,7 @@ for(prs_matrix in names(results1)){
                                      width = 1200, height = 1500)
                                 plot(dend, cex.main=1.25,
                                      main =paste0('Dendogram of PRSs at individuals level',"\n",
-                                                  dim(matrix)[1],' individuals',"\n",
+                                                  dim(clusters[[1]])[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   paste0(unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
                                                          unlist(strsplit(prs_matrix, "[_.]"))[5])),
