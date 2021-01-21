@@ -54,8 +54,8 @@ for(prs_matrix in names(results1)){
                                 jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Pheno_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1200, height = 1500)
-                                plot(dend, cex.main=1,
-                                     main =paste0('Dendogram of PRSs of phenotypes of ',
+                                plot(dend, cex.main=1.25,
+                                     main =paste0('Dendogram of PRSs at phenotypes level',"\n",
                                                   dim(matrix)[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   unlist(strsplit(prs_matrix, "[_.]"))[4]),
@@ -69,8 +69,8 @@ for(prs_matrix in names(results1)){
                                 jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Pheno_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1200, height = 1500)
-                                plot(dend, cex.main=1,
-                                     main =paste0('Dendogram of PRSs of phenotypes of ',
+                                plot(dend, cex.main=1.25,
+                                     main =paste0('Dendogram of PRSs at phenotypes level',"\n",
                                                   dim(matrix)[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   paste0(unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
@@ -107,8 +107,8 @@ for(prs_matrix in names(results1)){
                                 jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Ind_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1200, height = 1500)
-                                plot(dend, cex.main=1,
-                                     main =paste0('Dendogram of PRSs of individuals of ',
+                                plot(dend, cex.main=1.25,
+                                     main =paste0('Dendogram of PRSs at individuals level',"\n",
                                                   dim(matrix)[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   unlist(strsplit(prs_matrix, "[_.]"))[4]),
@@ -122,8 +122,8 @@ for(prs_matrix in names(results1)){
                                 jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Dendograms/Dendogram_Ind_",
                                             gsub("PCAresults_","",gsub(".rds","",prs_matrix)),".jpg"),
                                      width = 1200, height = 1500)
-                                plot(dend, cex.main=1,
-                                     main =paste0('Dendogram of PRSs of individuals of ',
+                                plot(dend, cex.main=1.25,
+                                     main =paste0('Dendogram of PRSs at individuals level',"\n",
                                                   dim(matrix)[1],' individuals',"\n",
                                                   'at P-value threshold of ',
                                                   paste0(unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
