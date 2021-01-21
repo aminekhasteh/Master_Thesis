@@ -1,0 +1,91 @@
+---
+title: "Exploring with PRSs and ROS/MAP"
+output: github_document
+---
+
+## Packages and importing datasets:
+
+
+```{r setup, include=FALSE}
+library(data.table)
+library(openxlsx)
+library(rms)
+library(limma)
+library(ggplot2)
+library(factoextra)
+library(diptest)
+library(corrplot)
+
+ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
+
+meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/Sum_Stats/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv")
+
+geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
+names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
+
+prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK_resid/",full.names = T)
+
+# read in PRS files
+results1 <- list()
+for (prsfile in prs_filenames[1:10]) {
+  results1[[tail(strsplit(prsfile,split="/")[[1]],n=1)]] <- readRDS(prsfile)
+}
+```
+
+# Hierarchical Clustering
+
+We take a look at the Dendogram of the phenotypes of the residuals of the PRSs.
+
+```{r dd, include=TRUE, fig.align = 'center',cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+for(prs_matrix in names(results1)){
+  matrix <- as.data.frame(results1[[prs_matrix]]$residuals)
+  matrix <- matrix[,-dim(matrix)[2]]
+  names(matrix) <- c(paste0('V',c(1:(dim(matrix)[2])))) # Need to come up with a better way of labeling the phenotypes
+  clusters <- hclust(dist(t(matrix)))
+  if(prs_matrix == 'PCAresults_p_val_1.rds'){
+    plot(clusters, col='lightblue', xlab='Phenotypes', 
+         main =paste0('Dendogram of PRSs of ',dim(matrix)[2],' phenotypes, at P-value threshold of ',
+                                                        paste0(unlist(strsplit(prs_matrix, "[_.]"))[3],' ',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[4])))
+    
+  } else {
+    plot(clusters, col='lightblue', xlab = 'Phenotypes',
+         main =paste0('Dendogram of PRSs of ',dim(matrix)[2],' phenotypes, at P-value threshold of ',
+                                                        paste0(unlist(strsplit(prs_matrix, "[_.]"))[3],' ',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[5])))
+  }
+}
+                                                      
+```
+
+
+We take a look at the Dendogram of the phenotypes of the residuals of PRSs at an individual level.
+
+```{r dd1, include=TRUE, fig.align = 'center', cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+for(prs_matrix in names(results1)){
+  matrix <- as.data.frame(results1[[prs_matrix]]$residuals)
+  matrix <- matrix[,-dim(matrix)[2]]
+  matrix <- t(matrix)
+  names(matrix) <- c(paste0('V',c(1:(dim(matrix)[1])))) # Need to come up with a way of categorizing the particpants
+  clusters <- hclust(dist(t(matrix)))
+  if(prs_matrix == 'PCAresults_p_val_1.rds'){
+    plot(clusters, col='lightblue', xlab = 'Individuals',
+         main =paste0('Dendogram of PRSs of individuals of ',dim(matrix)[1],' individuals, at P-value threshold of ',
+                                                        paste0(unlist(strsplit(prs_matrix, "[_.]"))[3],'.',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[4])))
+    
+  } else {
+    plot(clusters, col='lightblue', xlab = 'Individuals',
+         main =paste0('Dendogram of PRSs of individuals of ',dim(matrix)[1],' individuals, at P-value threshold of ',
+                                                        paste0(unlist(strsplit(prs_matrix, "[_.]"))[3],' ',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[4],'.',
+                                                               unlist(strsplit(prs_matrix, "[_.]"))[5])))
+  }
+}
+
+```
