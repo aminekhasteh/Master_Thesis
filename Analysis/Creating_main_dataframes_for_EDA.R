@@ -6,10 +6,12 @@ library(ggplot2)
 library(factoextra)
 library(diptest)
 library(corrplot)
+library(fuzzyjoin)
 
 ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
 
-meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/Sum_Stats/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv")
+# Will change this later
+meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/ukbb_manifest_EUR_h2_05_both_sex_annotated.csv")
 
 geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
@@ -21,11 +23,9 @@ prs_list <- list()
 for (prsfile in prs_filenames[1:10]) {
                 prs_list[[tail(strsplit(prsfile,split="/")[[1]],n=1)]] <- as.data.frame(fread(prsfile,header=T,sep=","))
 }
-```
 
 ## LOOP for PCA analysis
 
-```{r setup, include=FALSE}
 dsets_torun <- names(prs_list)
 
 r <- list()
@@ -83,12 +83,16 @@ for (thresh in dsets_torun) {
                 print(paste("Calculating variable and subject Hierarchical clustering"))
                 
                 matrix <- res.clean[,-dim(res.clean)[2]]
-                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[2])))) # Need to come up with a better way of labeling the phenotypes
+                print(length(names(matrix)))
+                print(length(meta_pheno[which(names(matrix) %in% gsub('.{4}$', '', meta_pheno$full_description)),]$phenocode_annotate_lst))
+                
+                names(matrix) <- meta_pheno[which(names(matrix) %in% gsub('.{4}$', '', meta_pheno$full_description)),]$phenocode_annotate_lst # Need to come up with a better way of labeling the phenotypes
+                
                 pheno_clusters <- hclust(dist(t(matrix)))
                 
                 matrix <- res.clean[,-dim(res.clean)[2]]
                 matrix <- t(matrix)
-                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[1])))) # Need to come up with a way of categorizing the particpants
+                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[1])))) # Need to come up with a way of categorizing the participants
                 individual_clusters <- hclust(dist(t(matrix)))
                 
                 # Save files in list
@@ -102,5 +106,6 @@ for (thresh in dsets_torun) {
                                clust.var=pheno_clusters,
                                clust.ind=individual_clusters)
                 
-                saveRDS(allres,file=paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK_resid/", "PCAresults_",pval,".rds"))
+                saveRDS(allres,file=paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK_Resid_PCA_Clust/", "PCAresults_",pval,".rds"))
 }
+

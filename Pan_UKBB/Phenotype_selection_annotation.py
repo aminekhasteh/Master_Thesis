@@ -83,7 +83,7 @@ ukbb_manifest_EUR_h2_05_both_sex.to_csv('/Users/amink/OneDrive/Documents/Current
 
 # use once you have th final PRS
 #ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno.csv')
-ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv')
+ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv')
 
 ###print(ukbb_manifest_main.shape) # (1272, 49)
 print(ukbb_manifest_main.shape) # (1305, 49)
@@ -104,9 +104,9 @@ for rows in range(1305):
       phenocode_annotate = 'CA_'+ row.category.split(">",)[-1].replace(' ','_') + '_h' + str("{:.5f}".format(row.saige_heritability_EUR)) + '_n' + row.n_cases_full_cohort_both_sexes.astype(str)
    if row['trait_type'] =='continuous':
       phenocode_annotate = 'CO_'+ row.category.split(">",)[-1][5:].replace(' ','_') + '_h' + str("{:.5f}".format(row.saige_heritability_EUR)) + '_n' + row.n_cases_full_cohort_both_sexes.astype(str)
-   phenocode_annotate_lst = phenocode_annotate_lst +[phenocode_annotate]
+   phenocode_annotate_lst = phenocode_annotate_lst +[phenocode_annotate.replace('__','_')]
 
 ukbb_manifest_main['phenocode_annotate_lst'] = phenocode_annotate_lst
 
 # Saving this file
-ukbb_manifest_main.to_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_annotated.csv')
+ukbb_manifest_main.to_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/ukbb_manifest_EUR_h2_05_both_sex_annotated.csv')

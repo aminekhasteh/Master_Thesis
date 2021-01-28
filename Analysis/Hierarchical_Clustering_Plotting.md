@@ -8,7 +8,6 @@ the PRSs.
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
-op <- par(mfrow=c(1,2), mar=c(3,1,1,1))
 for(prs_matrix in names(results1)){
                 clusters <- results1[[prs_matrix]]$clust.var
                 dend <- as.dendrogram(clusters)
@@ -54,7 +53,6 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                 }
 }
-par(op)
 ```
 
 We take a look at the Dendogram of the phenotypes of the residuals of
@@ -62,7 +60,6 @@ PRSs at an individual level.
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
-op <- par(mfrow=c(1,2), mar=c(3,1,1,1))
 for(prs_matrix in names(results1)){
                 clusters <- results1[[prs_matrix]]$clust.ind
                 dend <- as.dendrogram(clusters)
@@ -108,5 +105,4 @@ for(prs_matrix in names(results1)){
                                 # circlize_dendrogram(dend)
                 }
 }
-par(op)
 ```
