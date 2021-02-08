@@ -82,17 +82,16 @@ ukbb_manifest_EUR_h2_05_both_sex.to_csv('/Users/amink/OneDrive/Documents/Current
 # importing the new dataset:
 
 # use once you have th final PRS
-#ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno.csv')
-ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv')
+ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno.csv')
+#ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/Pan_UK_Biobank_phenotype_manifest_h2_more_0.05_both_sex_non_ambigous.csv')
 
-###print(ukbb_manifest_main.shape) # (1272, 49)
-print(ukbb_manifest_main.shape) # (1305, 49)
+print(ukbb_manifest_main.shape) # (1272, 49)
+##print(ukbb_manifest_main.shape) # (1305, 49)
 ukbb_manifest_main['trait_type'].value_counts()
 
 phenocode_annotate_lst = []
-for rows in range(1305):
+for rows in range(1272):
    print(rows)
-   print(row['trait_type'])
    row = ukbb_manifest_main.iloc[rows,:]
    if row['trait_type'] =='phecode':
       phenocode_annotate = 'PH_'+ row.description.replace(' ','_') + '_h' + str("{:.5f}".format(row.saige_heritability_EUR)) + '_n' + row.n_cases_full_cohort_both_sexes.astype(str)
@@ -106,7 +105,40 @@ for rows in range(1305):
       phenocode_annotate = 'CO_'+ row.category.split(">",)[-1][5:].replace(' ','_') + '_h' + str("{:.5f}".format(row.saige_heritability_EUR)) + '_n' + row.n_cases_full_cohort_both_sexes.astype(str)
    phenocode_annotate_lst = phenocode_annotate_lst +[phenocode_annotate.replace('__','_')]
 
+phenocode_annotate_lst = [i.replace('/','_') for i in phenocode_annotate_lst]
 ukbb_manifest_main['phenocode_annotate_lst'] = phenocode_annotate_lst
 
 # Saving this file
-ukbb_manifest_main.to_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/OLD/ukbb_manifest_EUR_h2_05_both_sex_annotated.csv')
+ukbb_manifest_main.to_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated.csv')
+
+###################################################################################
+#############################   |                 |   #############################                                    
+#############################   | More ANNOTATION |   #############################
+#############################   |                 |   #############################
+###################################################################################
+
+ukbb_manifest_main = pd.read_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated.csv')
+
+# Now that we have manually categorized the phenotypes, we need to change some of the annotations we have:
+   ## Medical_Conditions --> coding_description column
+   ## CA_Medications --> CA_PR_ + coding_description column
+   ## Summary_Operations --> coding_description column minus the first 6 strs
+   
+new_pheno_annot = list(ukbb_manifest_main.phenocode_annotate_lst)
+
+new_pheno_annot1 = [i.replace("Medical_conditions",str(ukbb_manifest_main['coding_description'].loc[ukbb_manifest_main['phenocode_annotate_lst']==i].values[0])) for i in new_pheno_annot]
+new_pheno_annot2 = [i.replace("Medications",'PR_'+str(ukbb_manifest_main['coding_description'].loc[ukbb_manifest_main['phenocode_annotate_lst']==i].values)) for i in new_pheno_annot1]
+new_pheno_annot3 = [i.replace("Operations",str(ukbb_manifest_main['coding_description'].loc[ukbb_manifest_main['phenocode_annotate_lst']==i].values)) for i in new_pheno_annot2]
+new_pheno_annot4 = [i.replace("Summary_Operations",str(ukbb_manifest_main['coding_description'].loc[ukbb_manifest_main['phenocode_annotate_lst']==i].values)) for i in new_pheno_annot3]
+new_pheno_annot = [i.replace("_['",'_') for i in new_pheno_annot4]
+new_pheno_annot = [i.replace("']_",'_') for i in new_pheno_annot]
+new_pheno_annot = [i.replace(" ",'_') for i in new_pheno_annot]
+new_pheno_annot = [i.replace("__",'_') for i in new_pheno_annot]
+new_pheno_annot = [i.replace("___",'_') for i in new_pheno_annot]
+new_pheno_annot = [i.replace("/",'_') for i in new_pheno_annot]
+new_pheno_annot = [i.replace("_Summary_",'_') for i in new_pheno_annot]
+
+ukbb_manifest_main['new_pheno_annot'] = new_pheno_annot
+
+# Saving this file
+ukbb_manifest_main.to_csv('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated_new.csv')
