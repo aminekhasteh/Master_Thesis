@@ -7,6 +7,7 @@ library(factoextra)
 library(diptest)
 library(corrplot)
 library(fuzzyjoin)
+library(harrietr) # dist to long format
 
 ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
 
@@ -16,7 +17,7 @@ meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters The
 geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
 
-prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK/",full.names = T)
+prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PRSice/",full.names = T)
 
 # read in PRS files
 prs_list <- list()
@@ -24,11 +25,17 @@ for (prsfile in prs_filenames[1:10]) {
                 prs_list[[tail(strsplit(prsfile,split="/")[[1]],n=1)]] <- as.data.frame(fread(prsfile,header=T,sep=","))
 }
 
-## LOOP for PCA analysis
+# read the SNP count file
+snp_count <- as.data.frame(fread('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PRSice/SNP_count/snp_count_cumulative.txt',header=T))
 
+snp_count$category <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                        "p_val_0_001.txt","p_val_0_0001.txt","p_val_1e-05.txt","p_val_1e-06.txt", 
+                        "p_val_1e-07.txt","p_val_5e-08.txt")               
+                
+## LOOP for PCA analysis
 dsets_torun <- names(prs_list)
 
-r <- list()
+allres <- list()
 for (thresh in dsets_torun) {
                 pval <- gsub(".txt","",thresh)
                 print(paste("Starting run, p-value threshold=",pval))
@@ -50,9 +57,19 @@ for (thresh in dsets_torun) {
                 res <- t(residuals.MArrayLM(fit,y = t(formod[,3:ncol(prs_list[[thresh]])])))
                 res <- apply(res,2,scale)
                 
+                # # SNP count flag:
+                # print(paste("Number of phenotypes with more than 100 SNPs used in their PRS is",
+                #             (sum(snp_count[which(snp_count$category == thresh),] > 99)-1))) # removing 1 : category column
+                # pheno_passed <- names(snp_count[,which(snp_count[which(snp_count$category == thresh),
+                #                                                  ] > 99)])[-sum(snp_count[which(snp_count$category == thresh),
+                #                                                                           ] > 99)]
+                # 
+                # res <- as.matrix(as.data.frame(res)[,which(names(as.data.frame(res)) %in% pheno_passed)])
+                
                 # flag multimodal scores
                 print(paste("Flagging scores with multimodal distributions"))
                 dts <- apply(res,2,dip.test)
+                
                 dtsp <- lapply(dts,function(x) { x$p.value })
                 multimodal <- which(dtsp < 0.05/ncol(res))
                 
@@ -65,6 +82,41 @@ for (thresh in dsets_torun) {
                                 multimodal.names <- NA
                                 res.clean <- res
                 }
+                
+                # Use Euclidean distance and correlation test to remove duplicated or almost duplicated phenotypes
+                
+                matrix <- as.data.frame(res.clean[,-dim(res.clean)[2]])
+                matrix_dist <- as.matrix(dist(t(matrix)))
+                dist_df <- melt_dist(matrix_dist)
+                #dist_df_passed <- dist_df[which(log(dist_df$dist) >= quantile(log(dist_df$dist),0.025)),]
+                check <- dist_df[which(log(dist_df$dist) < quantile(log(dist_df$dist),0.025)),]
+                to_remove = NULL
+                for (i in 1:dim(check)[1]){
+                                corr <- cor.test(as.numeric(unlist(matrix[check[i,1]])),
+                                                 as.numeric(unlist(matrix[check[i,2]])))
+                                if((corr$p.value <0.05/dim(matrix[2])) & (abs(corr$estimate)>0.95)){
+                                                if(as.numeric(unlist(strsplit(unlist(strsplit(check[i,1],'_'))[length(unlist(strsplit(check[i,1],'_')))],'n'))[2]) > 
+                                                   as.numeric(unlist(strsplit(unlist(strsplit(check[i,2],'_'))[length(unlist(strsplit(check[i,2],'_')))],'n'))[2])){
+                                                                to_remove <- append(to_remove,check[i,2])
+                                                } else if (as.numeric(unlist(strsplit(unlist(strsplit(check[i,1],'_'))[length(unlist(strsplit(check[i,1],'_')))],'n'))[2]) < 
+                                                           as.numeric(unlist(strsplit(unlist(strsplit(check[i,2],'_'))[length(unlist(strsplit(check[i,2],'_')))],'n'))[2])){
+                                                                to_remove <- append(to_remove,check[i,1])
+                                                } else if (as.numeric(unlist(strsplit(unlist(strsplit(check[i,1],'_'))[(length(unlist(strsplit(check[i,1],'_')))-1)],'h'))[2]) < 
+                                                           as.numeric(unlist(strsplit(unlist(strsplit(check[i,2],'_'))[(length(unlist(strsplit(check[i,2],'_')))-1)],'h'))[2])){
+                                                                to_remove <- append(to_remove,check[i,1])
+                                                } else if(as.numeric(unlist(strsplit(unlist(strsplit(check[i,1],'_'))[(length(unlist(strsplit(check[i,1],'_')))-1)],'h'))[2]) > 
+                                                          as.numeric(unlist(strsplit(unlist(strsplit(check[i,2],'_'))[(length(unlist(strsplit(check[i,2],'_')))-1)],'h'))[2])){
+                                                                to_remove <- append(to_remove,check[i,2])
+                                                } else {
+                                                                to_remove <- append(to_remove,sample(c(check[i,1], check[i,2]), 1))
+                                                }
+                                }
+                }
+                
+                print(paste0(length(to_remove)," duplicated phenotypes were found"))
+                
+                res.clean <- as.matrix(as.data.frame(res.clean)[,which(!colnames(res.clean)%in%to_remove)])
+                
                 
                 # run PCA
                 print(paste("Running PCA"))
@@ -79,22 +131,6 @@ for (thresh in dsets_torun) {
                 res.clean <- as.data.frame(res.clean)
                 res.clean$IID <- formod$IID
                 
-                # Calculate subject and variable Hierarchical clustering
-                print(paste("Calculating variable and subject Hierarchical clustering"))
-                
-                matrix <- res.clean[,-dim(res.clean)[2]]
-                print(length(names(matrix)))
-                print(length(meta_pheno[which(names(matrix) %in% gsub('.{4}$', '', meta_pheno$full_description)),]$phenocode_annotate_lst))
-                
-                names(matrix) <- meta_pheno[which(names(matrix) %in% gsub('.{4}$', '', meta_pheno$full_description)),]$phenocode_annotate_lst # Need to come up with a better way of labeling the phenotypes
-                
-                pheno_clusters <- hclust(dist(t(matrix)))
-                
-                matrix <- res.clean[,-dim(res.clean)[2]]
-                matrix <- t(matrix)
-                names(matrix) <- c(paste0('V',c(1:(dim(matrix)[1])))) # Need to come up with a way of categorizing the participants
-                individual_clusters <- hclust(dist(t(matrix)))
-                
                 # Save files in list
                 print(paste("Saving data"))
 
@@ -102,9 +138,7 @@ for (thresh in dsets_torun) {
                                multimodal=multimodal.names,
                                pca=respca,
                                res.var=res.var,
-                               res.ind=res.ind,
-                               clust.var=pheno_clusters,
-                               clust.ind=individual_clusters)
+                               res.ind=res.ind)
                 
                 saveRDS(allres,file=paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PRS_PLINK_Resid_PCA_Clust/", "PCAresults_",pval,".rds"))
 }
