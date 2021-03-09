@@ -51,6 +51,7 @@ for (prsfile in prs_filenames) {
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 #results.S <- results.S2
 # This loop will find the p-values of each PC for each selected phenotype in ROSMAP, and generate plots for them
 results.G <- list()
@@ -202,8 +203,6 @@ ggplot(data=pheno_pcs2,aes(x=PC8,y=cogn_global_random_slope))+
                 #geom_point(data=subset(pheno_pcs2,IID %in% highlightiid),col="red",size=3)+
                 geom_smooth(method="lm")+
                 theme_minimal()
-
-
 
 
 
