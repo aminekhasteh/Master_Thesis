@@ -759,7 +759,8 @@ to_remove_phenos <- c("PH_Polyneuropathy_in_diabetes_h0.13099_n629",
                       "PH_Other_disorders_of_arteries_and_arterioles_h0.16520_n2182",
                       "PH_Occlusion_and_stenosis_of_precerebral_arteries_h0.14965_n1911",
                       "PH_Other_disorders_of_biliary_tract_h0.06595_n2972",
-                      "CA_cholecystitis_h0.23650_n468")
+                      "CA_cholecystitis_h0.23650_n468",
+                      "CA_malignant_melanoma_h0.05001_n3594")
 
 # Removing the selected phenotypes:
 selected_phenos <- which(names(matrix)%in%to_remove_phenos)
@@ -789,7 +790,23 @@ mtext(paste0('Heatmap of PRSs at phenotypes level',"\n",
              unlist(strsplit(prs_matrix, "[_.]"))[4]), side = 3, line = 1, cex = 2)
 dev.off()
 
-# run PCA
+#-----------------------------------------------------------------------------------------------------------------------------------------
+#############################################################################################
+################################   |                        |   #############################                                    
+################################   |      PCA Analysis      |   #############################
+################################   |                        |   #############################
+#############################################################################################
+#-----------------------------------------------------------------------------------------------------------------------------------------
+
+# First, we make the phenotype labels smaller:
+names <- names(matrix_updated)
+names1 <-gsub("\\_n[0-9]+","",names)
+names1 <-gsub("_and_","_",names1)
+names1 <-gsub("_or_","_",names1)
+names1 <-gsub("_of_","_",names1)
+names1 <-gsub("_the_","_",names1)
+names1 <-gsub("_to_","_",names1)
+names(matrix_updated) <- names1
 print(paste("Running PCA"))
 respca <- prcomp(matrix_updated)
 
@@ -798,15 +815,17 @@ print(paste("Calculating variable and subject contributions to components"))
 res.var <- get_pca_var(respca)
 res.ind <- get_pca_ind(respca)
 
-
 res.pcs <- as.data.frame(respca$x)
 res.pcs$IID <- results.S[[prs_matrix]]$residuals$IID
 pheno_pcs <- merge(res.pcs,ROSmaster,by="IID")
 pheno_pcs2 <- merge(pheno_pcs,geno_pcs,by="IID")
 ## identify relationships of PCs with phenotypes of interest
-pheno.list <- c("amyloid_sqrt","tangles_sqrt","cogn_global_random_slope","age_death","parksc_lv_sqrt","neuroticism_12","anxiety_20items","cesdsum_lv","educ","mf3123","it3123","vm3123","pput3123")
+pheno.list <- c("amyloid_sqrt","tangles_sqrt","cogn_global_random_slope","age_death","parksc_lv_sqrt",
+                "neuroticism_12","agreeableness","cesdsum_lv","educ","pput3123","conscientiousness",
+                "extraversion","openness","dxpark","apoe_genotype","alcohol_g_bl","smoking",
+                "hypertension_bl","diabetes_sr_rx_bl","heart_bl")
 
-PClist <- paste0("PC",seq(1:50))
+PClist <- paste0("PC",seq(1:10))
 index <- 1
 pvalues <- NULL
 bvalues <- NULL
@@ -832,19 +851,327 @@ assocres <- data.frame(pheno=phenovalues,
                        n=nvalues,
                        fdr=p.adjust(pvalues))
 
+
+ggplot(dtf1,aes(ID,Diff,label="",hjust=hjust))+
+                geom_bar(stat="identity",position="identity",aes(fill = colour))+
+                scale_fill_manual(values=c(positive="firebrick1",negative="steelblue"))
+
+
+assocres$colour <- ifelse(assocres$b < 0, "Negative effect","Positive effect")
 ggplot(data=assocres, aes(x=pheno,y=-log10(p),group=pc))+
-                geom_bar(stat="identity",position="dodge")+
-                geom_hline(yintercept = -log10(0.05/nrow(assocres)),col="red",lty=2)+ 
-                geom_text(data=subset(assocres,p<0.05/nrow(assocres)),aes(label=pc))+
+                geom_bar(stat="identity",position="dodge",aes(fill = colour))+
+                geom_hline(aes(yintercept = -log10(0.05/nrow(assocres)),color="P-value < 0.00025"),lty=2)+ 
+                geom_hline(aes(yintercept = -log10(0.05),color="P-value < 0.05"),lty=2)+ 
+                scale_linetype_manual(name = "limit", values = c(2, 2), 
+                                      guide = guide_legend(override.aes = list(color = c("green", "orange"))))+
+                geom_text_repel(data=subset(assocres,p<0.05),aes(label=pc))+
                 theme_minimal()+
                 theme(axis.text.x=element_text(angle = -45, hjust = 0))+
-                ggtitle(paste0('PRSs at P-value threshhold of',"\n",
-                               '1e-05'))
-# PC8 for cognitive decline and amyloid_sqrt:
-pcnum <- 5
-### get contributing PRS for given PC
-res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20]
+                ggtitle(paste0('PRSs at P-value threshhold of',' 1e-05'))
 
-fviz_cos2(respca,choice="var",axes=pcnum, top=10)
-fviz_contrib(respca,choice="var",axes=pcnum, top=10)
+# Proportion of variance explained by the first 500 PCs:
+sum(summary(respca)$importance[2,1:500]) #0.81475
 
+# First 100 PCs:
+fviz_eig(respca,ncp = 100,
+         choice = "variance",  # "eigenvalue"
+         geom = "line",
+         barfill = "lightblue",
+         barcolor = "steelblue",
+         main='Proportion of variance explained by the first 100 PCs: 26.755%')
+
+###
+##### PC1 ---> autoimmune dieases/ Class II HLA #### Check MHC region HLA 27, HLA B27, HLA DQB1/DRB1
+###
+
+sum(summary(respca)$importance[2,1]) # 0.00631
+pcnum <- 1 
+### get contributing PRS for given PC1
+pc1_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc1_top20$phenotypes <- rownames(pc1_top20)
+names(pc1_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc1_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc1_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+# CA_Medical_information_h0.13412 ----> Doctor diagnosed sarcoidosis
+
+
+###
+##### PC2 ---> arrhythmia PC
+###
+
+sum(summary(respca)$importance[2,2]) # 0.0061
+pcnum <- 2
+### get contributing PRS for given PC2
+pc2_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc2_top20$phenotypes <- rownames(pc2_top20)
+names(pc2_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc2_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc2_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+###
+##### PC3 ---> Skin cancer PC
+###
+
+sum(summary(respca)$importance[2,3]) # 0.00511
+pcnum <- 3
+### get contributing PRS for given PC3
+pc3_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc3_top20$phenotypes <- rownames(pc3_top20)
+names(pc3_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc3_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc3_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+###
+##### PC4 ---> ??
+###
+
+sum(summary(respca)$importance[2,4]) # 0.00391
+pcnum <- 4
+### get contributing PRS for given PC4
+pc4_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc4_top20$phenotypes <- rownames(pc4_top20)
+names(pc4_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc4_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc4_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+# CA_Administration_h0.07447 ----> Hepatobiliary & pancreatic surgery
+
+###
+##### PC5 ---> AD/Dementia PC
+###
+
+sum(summary(respca)$importance[2,5]) # 0.00373
+pcnum <- 5 
+### get contributing PRS for given PC5
+pc5_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc5_top20$phenotypes <- rownames(pc5_top20)
+names(pc5_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc5_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = 45,hjust=1,vjust=1))+
+                ggtitle(paste0('Quality of represenation of top 20 variables','\n', 'to PC',pcnum))+
+                coord_flip()
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc5_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables','\n', 'to PC',pcnum))+
+                coord_flip()
+
+
+# CA_Family_history_h0.10308 ----> Alzheimer's disease/dementia
+# CA_Administration_h0.07773 ----> Old age psychiatry
+
+
+###
+##### PC6 ---> Lung/respiratory PC
+###
+
+sum(summary(respca)$importance[2,6]) # 0.00358
+pcnum <- 6
+### get contributing PRS for given PC6
+pc6_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc6_top20$phenotypes <- rownames(pc6_top20)
+names(pc6_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc6_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc6_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+
+# CA_Administration_h0.07447 ----> Hepatobiliary & pancreatic surgery
+
+
+###
+##### PC7 ---> Brain PC
+###
+
+sum(summary(respca)$importance[2,7]) # 0.00347
+pcnum <- 7 
+### get contributing PRS for given PC7
+pc7_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc7_top20$phenotypes <- rownames(pc7_top20)
+names(pc7_top20) <- c("Cos2","Contribution","phenotypes")#
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc7_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc7_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+# CA_Administration_h0.05791 ----> Hepatology
+# CA_Administration_h0.07447 ----> Hepatobiliary & pancreatic surgery
+
+
+###
+##### PC8 
+###
+
+sum(summary(respca)$importance[2,8]) # 0.00343
+pcnum <- 8
+### get contributing PRS for given PC8
+pc8_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc8_top20$phenotypes <- rownames(pc8_top20)
+names(pc8_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc8_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc8_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+###
+##### PC9
+###
+
+sum(summary(respca)$importance[2,9]) # 0.00326
+pcnum <- 9
+### get contributing PRS for given PC9
+pc9_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc9_top20$phenotypes <- rownames(pc9_top20)
+names(pc9_top20) <- c("Cos2","Contribution","phenotypes")
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc9_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc9_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+###
+##### PC10 ---> Colon PC
+###
+
+sum(summary(respca)$importance[2,10]) # 0.00318
+pcnum <- 10
+### get contributing PRS for given PC10
+pc10_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
+pc10_top20$phenotypes <- rownames(pc10_top20)
+names(pc10_top20) <- c("Cos2","Contribution","phenotypes")
+# CA_Administration_h0.05791 ----> Hepatology
+# represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+
+# cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+ggplot(pc10_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+
+# contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+ggplot(pc10_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+                geom_bar(stat="identity",position="dodge")+
+                theme_minimal()+
+                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+
+
+# Contribution of PC 1 to 10
+fviz_contrib(respca, choice = "var", axes = 1:10,top=20)
+fviz_cos2(respca, choice = "var", axes = 1:10,top=20)
+# CA_Medical_information_h0.13412_n509 ----> Doctor diagnosed sarcoidosis
+
+# pc1_10_top20 <- as.data.frame(cbind(res.var$cos2[1:20,1:10][order(res.var$cos2[1:20,1:10],decreasing = T)],res.var$contrib[1:20,1:10][order(res.var$contrib[1:20,1:10],decreasing = T)]))
+# pc1_10_top20$phenotypes <- rownames(pc1_10_top20)
+# names(pc1_10_top20) <- c("Cos2","Contribution","phenotypes")
+# # CA_Administration_h0.05791 ----> Hepatology
+# # represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+# 
+# # cos2 : represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
+# ggplot(pc1_10_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
+#                 geom_bar(stat="identity",position="dodge")+
+#                 theme_minimal()+
+#                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+#                 ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+# 
+# # contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
+# ggplot(pc1_10_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+#                 geom_bar(stat="identity",position="dodge")+
+#                 theme_minimal()+
+#                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
+#                 ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+# 
