@@ -47,7 +47,7 @@ plink \
     --make-just-fam \
     --out ROSMAP.QC
 ```
-* A total of 9,329,439 were detected from the bim file
+* A total of 9,329,439 variants were detected from the bim file
 * No one was removed due to missing genotype data
 * 978 variants removed due to missing genotype data
 * 132 variants removed due to Hardy-Weinberg exact test

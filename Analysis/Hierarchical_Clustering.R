@@ -28,9 +28,7 @@ meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters The
                                                                                                                                           #|                                                                                                     
 #prs_path <- "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice_Resid_PCA_Clust/"        #|
 prs_path <- "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice_No_MHC_Resid_PCA_Clust/"  #|
-                                                                                                                                          #|
-#prs_path <- "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PLINK_Resid_PCA_Clust/"         #|
-#prs_path <- "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PLINK_No_MHC_Resid_PCA_Clust/"  #|
+                                                                                                                                          #|  #|
                                                                                                                                           #|
 #-----------------------------------------------------------------------------------------------------------------------------------------#
 
@@ -259,6 +257,7 @@ plot_heat <- function(lmatrix,
                                                             scaling_method,'_',gsub("PCAresults_","",gsub(".rds","",prs_matrix)),'_',hc_method,'_',dis_mat_method,'_',agg_method,".jpg"),
                                                      width = width, height = height)
                                                 par(mar=c(5,5,5,5),cex=1,font=3)
+                                                par(oma=c(3,3,15,3))
                                                 heatmap(as.matrix(matrix), Rowv = Rowv, Colv = Colv,
                                                         scale = "none",
                                                         col= colorRampPalette(brewer.pal(8, "Oranges"))(25))
@@ -267,13 +266,14 @@ plot_heat <- function(lmatrix,
                                                 mtext(paste0('Heatmap of PRSs at phenotypes level',"\n",
                                                              dim(matrix)[1],' individuals and ',dim(matrix)[2],' phenotypes',"\n",
                                                              'at P-value threshold of ',
-                                                             unlist(strsplit(prs_matrix, "[_.]"))[4]), side = 3, line = 1, cex = 2)
+                                                             unlist(strsplit(prs_matrix, "[_.]"))[4]), side = 3, line = 1, cex = 2, outer=TRUE)
                                                 dev.off()
                                 } else {
                                                 jpeg(paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Plots/Heatmaps/Heatmap_Pheno_",
                                                             scaling_method,'_',gsub("PCAresults_","",gsub(".rds","",prs_matrix)),'_',hc_method,'_',dis_mat_method,'_',agg_method,".jpg"),
                                                      width = width, height = height)
                                                 par(mar=c(5,5,5,5),cex=1,font=3)
+                                                par(oma=c(3,3,15,3))
                                                 heatmap(as.matrix(matrix), Rowv = Rowv, Colv = Colv,
                                                         scale = "none",
                                                         col= colorRampPalette(brewer.pal(8, "Oranges"))(25))
@@ -283,7 +283,7 @@ plot_heat <- function(lmatrix,
                                                              dim(matrix)[1],' individuals and ',dim(matrix)[2],' phenotypes',"\n",
                                                              'at P-value threshold of ',
                                                              paste0(unlist(strsplit(prs_matrix, "[_.]"))[4], '.',
-                                                                    unlist(strsplit(prs_matrix, "[_.]"))[5])), side = 3, line = 1, cex = 2)
+                                                                    unlist(strsplit(prs_matrix, "[_.]"))[5])), side = 3, line = 1, cex = 2, outer=TRUE)
                                                 dev.off()
                                 }
                 }
@@ -346,7 +346,7 @@ agglom_coef <- function(label_subset = levels(as.factor(meta_pheno$category_manu
 # Now We take a look at the Dendrogram of the phenotypes of the residuals of the PRSs
 plot_hc(results.S,"Scaled","Agglomerative","Correlation",agg_method = "ward.D2",width=2500,height=1500)
 agglom_coef(file_name = 'Agglomerative_Coef_PRSice_no_MHC')
-plot_heat(results.S,"Scaled","Agglomerative","Correlation",agg_method = "ward.D2",width=1500,height=1500)
+plot_heat(results.S,"Scaled","Agglomerative","Euclidean",agg_method = "complete",width=1500,height=1700)
 
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

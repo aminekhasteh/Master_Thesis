@@ -16,7 +16,7 @@ ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesi
 # Will change this later
 meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated_new.csv")
 
-geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
+geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec_no_mhc_new.txt",header=F)
 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
 
 # ------------------------------------------# Here we can alternate between the PRS with no MHC and with MHC # ----------------------------------------------------------- #                                                                                       #|
@@ -24,8 +24,7 @@ names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
 #prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice/",full.names = T) ; no_mhc = FALSE        #|
 prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice_No_MHC/",full.names = T) ; no_mhc = TRUE   #|
 #|
-#prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PLINK/",full.names = T) ; no_mhc = FALSE         #|
-#prs_filenames <- list.files("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PLINK_No_MHC/",full.names = T) ; no_mhc = TRUE   #|
+  #|
 #|
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -36,12 +35,12 @@ for (prsfile in prs_filenames[1:10]) {
                 prs_list[[tail(strsplit(prsfile,split="/")[[1]],n=1)]] <- as.data.frame(fread(prsfile,header=T,sep=","))
 }
 
-# read the SNP count file
-# snp_count <- as.data.frame(fread('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_200_0.25/PRS_PRSice/SNP_count/snp_count_cumulative.txt',header=T))
-# 
-# snp_count$category <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
-#                         "p_val_0_001.txt","p_val_0_0001.txt","p_val_1e-05.txt","p_val_1e-06.txt",
-#                         "p_val_1e-07.txt","p_val_5e-08.txt")
+#read the SNP count file
+snp_count <- as.data.frame(fread('/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice_No_MHC/SNP_count/snp_count_cumulative.txt',header=T))
+
+snp_count$category <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                        "p_val_0_001.txt","p_val_0_0001.txt","p_val_1e-05.txt","p_val_1e-06.txt",
+                        "p_val_1e-07.txt","p_val_5e-08.txt")
 # 
 ## LOOP for PCA analysis
 dsets_torun <- names(prs_list)
@@ -57,8 +56,6 @@ allres <- list()
 # # The FID name for "p_val_0_001.txt" (PRSs with MHC with PLINK) is ataFID. Let's change that:
 # thresh <- "p_val_0_001.txt"
 # colnames(prs_list[[thresh]])[1] <- 'FID'
-
-# No changes needed for non_mhc PRS (PLINK2.0)
 
 for (thresh in dsets_torun) {
                 pval <- gsub(".txt","",thresh)
@@ -80,47 +77,46 @@ for (thresh in dsets_torun) {
                 
                 print(paste("Extracting model residuals"))
                 res <- t(residuals.MArrayLM(fit,y = t(formod[,3:ncol(prs_list[[thresh]])])))
-                res <- apply(res,2,scale) 
+                #res <- apply(res,2,scale) 
                 
-                #res <- scale(res,scale=TRUE) # Change this later maybe
+                res <- scale(res,scale=TRUE) # Change this later maybe
                 
                 # Finding columns with NAs
-                na_cols <- colnames(res)[ apply(res, 2, anyNA) ]
-                print(paste0('number of columns with NAs ',length(na_cols)))
-                res <- res[,which(!colnames(res) %in% na_cols)]
+                # na_cols <- colnames(res)[ apply(res, 2, anyNA) ]
+                # print(paste0('number of columns with NAs ',length(na_cols)))
+                # res <- res[,which(!colnames(res) %in% na_cols)]
+                
+                # SNP count flag:
+                pheno_failed <- names(snp_count[,which(snp_count[which(snp_count$category == thresh),
+                ] < 5)])[-sum(snp_count[which(snp_count$category == thresh),
+                ] < 5)]
+                print(paste("Number of phenotypes with less than 5 SNPs used in each phenotype is",length(pheno_failed))) # removing 1 : category column
+                
+                if (length(pheno_failed)>0) {
+                                lowsnpcount.names <- pheno_failed
+                                res.clean <- res[, !colnames(res) %in% pheno_failed]
+                } else {
+                                lowsnpcount.names <- NA
+                                res.clean <- res
+                }
+                
                 
                 # flag multimodal scores - Using dip test
                 print(paste("Flagging scores with multimodal distributions"))
-                dts <- apply(res,2,dip.test)
+                dts <- apply(res.clean,2,dip.test)
                 dtsp <- lapply(dts,function(x) { x$p.value })
-                multimodal <- which(dtsp < 0.05/ncol(res))
+                multimodal <- which(dtsp < 0.05/ncol(res.clean))
                 
                 print(paste("Removing",length(multimodal),"multimodal scores"))
                 
                 if (length(multimodal)>0) {
                                 multimodal.names <- colnames(res)[multimodal]
-                                res.clean <- res[,-multimodal]
+                                res.clean <- res.clean[,-multimodal]
                 } else {
                                 multimodal.names <- NA
-                                res.clean <- res
+                                res.clean <- res.clean
                 }
                 
-                
-                # # SNP count flag:
-                # print(paste("Number of phenotypes with less than 10 SNPs used in each phenotype is",
-                #             (sum(as.numeric(snp_count[which(snp_count$category == thresh),-1273]) < 9,na.omit=TRUE)))) # removing 1 : category column
-                # pheno_failed <- names(snp_count[,which(snp_count[which(snp_count$category == thresh),
-                # ] <= 10)])[-sum(snp_count[which(snp_count$category == thresh),
-                # ] <= 10)]
-                # 
-                # if (length(pheno_failed)>0) {
-                #                 lowsnpcount.names <- colnames(res)[pheno_failed]
-                #                 res.clean <- as.matrix(as.data.frame(res.clean)[,which(names(as.data.frame(res.clean)) %in% pheno_failed)])
-                #                 
-                # } else {
-                #                 lowsnpcount.names <- NA
-                #                 res.clean <- res.clean
-                # }
                 
                 # Change the phenotype labels
                 
@@ -147,7 +143,7 @@ for (thresh in dsets_torun) {
                 
                 print(paste0('removing ',length(to_remove_acute),' acute diseases, except for acute mental or nueroligical phenotypes.'))
                 
-                # Use Euclidean distance and correlation test to remove duplicated or almost duplicated phenotypes
+                # Use correlation test to remove duplicated or almost duplicated phenotypes
                 
                 matrix <- as.data.frame(res.clean[,-dim(res.clean)[2]])
                 
@@ -157,7 +153,7 @@ for (thresh in dsets_torun) {
                 #matrix_dist <- as.matrix(dist(t(matrix)))
                 dist_df <- melt_dist(matrix_dist)
                 #dist_df_passed <- dist_df[which(log(dist_df$dist) >= quantile(log(dist_df$dist),0.025)),]
-                check <- dist_df[which(abs(dist_df$dist) > 0.85 ),]
+                check <- dist_df[which(abs(dist_df$dist) > 0.8 ),]
                 to_remove = NULL
                 if(dim(check)[1] >0){
                                 for (i in 1:dim(check)[1]){
@@ -187,13 +183,13 @@ for (thresh in dsets_torun) {
                 }
                 
                 # run PCA
-                print(paste("Running PCA"))
-                respca <- prcomp(res.clean)
-                
-                # Calculate subject and variable contributions to each component
-                print(paste("Calculating variable and subject contributions to components"))
-                res.var <- get_pca_var(respca)
-                res.ind <- get_pca_ind(respca)
+                # print(paste("Running PCA"))
+                # respca <- prcomp(res.clean)
+                # 
+                # # Calculate subject and variable contributions to each component
+                # print(paste("Calculating variable and subject contributions to components"))
+                # res.var <- get_pca_var(respca)
+                # res.ind <- get_pca_ind(respca)
                 
                 # Changing res.clean --> dataframe
                 res.clean <- as.data.frame(res.clean)
@@ -205,10 +201,12 @@ for (thresh in dsets_torun) {
                 allres <- list(residuals=res.clean,
                                multimodal=multimodal.names,
                                highlycorrelated=check,
-                               removed.acute.phenos=acute.phenos.names,
-                               pca=respca,
-                               res.var=res.var,
-                               res.ind=res.ind)
+                               removed.acute.phenos=acute.phenos.names) 
+                # ,
+                # pca=respca,
+                # res.var=res.var,
+                # res.ind=res.ind
+                
                 if(isTRUE(no_mhc)){
                                 
                                 saveRDS(allres,file=paste0("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/CLUMP_500_0.2/PRS_PRSice_No_MHC_Resid_PCA_Clust/", "PCAresults_",pval,".rds"))

@@ -14,13 +14,14 @@ library(dplyr) # data manipulation
 library(tidyverse)  # data manipulation
 library(summarytools)
 library(RColorBrewer)
+library(NbClust)
 
 # Reading datasets:
 ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
 
 # Will change this later
 meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Master_Thesis/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated_new.csv")
-geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec.txt",header=F)
+geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Code/Datasets/PCA_Genotype/geno_qc.eigenvec_no_mhc_new.txt",header=F)
 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
 
 # -----------------------------# Here we can alternate between the PRS with no MHC and with MHC # ----------------------------------------#                                                                                       #|
@@ -46,6 +47,9 @@ for (prsfile in prs_filenames) {
 
 prs_matrix <- 'PCAresults_p_val_1e-05.rds'
 matrix <- results.S[[prs_matrix]]$residuals[,-dim(results.S[[prs_matrix]]$residuals)[2]]
+Nclusters<-NbClust(t(matrix), distance = "euclidean", min.nc=2, max.nc=10, 
+             method = "complete", index = "ch")
+table(Nclusters$Best.partition)
 #-----------------------------------------------------------------------------------------------------
 
 # subset pheno categories-----------------------------------------------------------------------------------------------------
@@ -732,6 +736,9 @@ table(sub_grp)
 # 1     2 
 # 415 363    
 
+sub_grp[which((sub_grp == 2))]
+
+cor.test(matrix$CA_Administration_h0.23874_n1506, matrix$CA_type_1_diabetes_h0.14695_n420)
 
 #-----------------------------------------------------------------------------------------------------
 to_remove_phenos <- c("PH_Polyneuropathy_in_diabetes_h0.13099_n629",
@@ -822,7 +829,7 @@ pheno_pcs2 <- merge(pheno_pcs,geno_pcs,by="IID")
 ## identify relationships of PCs with phenotypes of interest
 pheno.list <- c("amyloid_sqrt","tangles_sqrt","cogn_global_random_slope","age_death","parksc_lv_sqrt",
                 "neuroticism_12","agreeableness","cesdsum_lv","educ","pput3123","conscientiousness",
-                "extraversion","openness","dxpark","apoe_genotype","alcohol_g_bl","smoking",
+                "extraversion","openness","dxpark","alcohol_g_bl","smoking",
                 "hypertension_bl","diabetes_sr_rx_bl","heart_bl")
 
 PClist <- paste0("PC",seq(1:10))
@@ -851,16 +858,10 @@ assocres <- data.frame(pheno=phenovalues,
                        n=nvalues,
                        fdr=p.adjust(pvalues))
 
-
-ggplot(dtf1,aes(ID,Diff,label="",hjust=hjust))+
-                geom_bar(stat="identity",position="identity",aes(fill = colour))+
-                scale_fill_manual(values=c(positive="firebrick1",negative="steelblue"))
-
-
 assocres$colour <- ifelse(assocres$b < 0, "Negative effect","Positive effect")
 ggplot(data=assocres, aes(x=pheno,y=-log10(p),group=pc))+
                 geom_bar(stat="identity",position="dodge",aes(fill = colour))+
-                geom_hline(aes(yintercept = -log10(0.05/nrow(assocres)),color="P-value < 0.00025"),lty=2)+ 
+                geom_hline(aes(yintercept = -log10(0.05/nrow(assocres)),color="P-value < 0.00026"),lty=2)+ 
                 geom_hline(aes(yintercept = -log10(0.05),color="P-value < 0.05"),lty=2)+ 
                 scale_linetype_manual(name = "limit", values = c(2, 2), 
                                       guide = guide_legend(override.aes = list(color = c("green", "orange"))))+
@@ -894,15 +895,17 @@ names(pc1_top20) <- c("Cos2","Contribution","phenotypes")
 ggplot(pc1_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
                 geom_bar(stat="identity",position="dodge")+
                 theme_minimal()+
-                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
-                ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
+                theme(axis.text.x=element_text(angle = 90,hjust=1,vjust=1))+
+                ggtitle(paste0('Quality of represenation of top 20 variables','\n', 'to PC',pcnum))+
+                coord_flip()
 
 # contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
-ggplot(pc1_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+ggplot(pc1_top20, aes(x=reorder(phenotypes, +Contribution), y=Contribution)) +
                 geom_bar(stat="identity",position="dodge")+
                 theme_minimal()+
-                theme(axis.text.x=element_text(angle = -90, hjust = 0))+
-                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+                theme(axis.text.x=element_text(angle = 90,hjust=1,vjust=1))+
+                ggtitle(paste0('Quality of represenation of top 20 variables','\n', 'to PC',pcnum))+
+                coord_flip()
 
 
 # CA_Medical_information_h0.13412 ----> Doctor diagnosed sarcoidosis
@@ -1004,7 +1007,7 @@ ggplot(pc5_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
                 coord_flip()
 
 # contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
-ggplot(pc5_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+ggplot(pc5_top20, aes(x=reorder(phenotypes, +Contribution), y=Contribution)) +
                 geom_bar(stat="identity",position="dodge")+
                 theme_minimal()+
                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
@@ -1063,11 +1066,12 @@ ggplot(pc7_top20, aes(x=reorder(phenotypes, -Cos2), y=Cos2)) +
                 ggtitle(paste0('Quality of represenation of top 20 variables to PC',pcnum,' 1e-05'))
 
 # contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
-ggplot(pc7_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
+ggplot(pc7_top20, aes(x=reorder(phenotypes, +Contribution), y=Contribution)) +
                 geom_bar(stat="identity",position="dodge")+
                 theme_minimal()+
                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
-                ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
+                ggtitle(paste0('Contributions (%) of top 20 variables','\n', 'to PC',pcnum))+
+                coord_flip()
 
 # CA_Administration_h0.05791 ----> Hepatology
 # CA_Administration_h0.07447 ----> Hepatobiliary & pancreatic surgery
@@ -1120,7 +1124,6 @@ ggplot(pc9_top20, aes(x=reorder(phenotypes, -Contribution), y=Contribution)) +
                 theme_minimal()+
                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
                 ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
-
 
 ###
 ##### PC10 ---> Colon PC
@@ -1175,3 +1178,53 @@ fviz_cos2(respca, choice = "var", axes = 1:10,top=20)
 #                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
 #                 ggtitle(paste0('Contributions (%) of top 20 variables to PC',pcnum,' 1e-05'))
 # 
+
+
+# META-PRS
+pca_dat <- as.data.frame(cbind(respca$x))
+pca_dat$IID <- results.S[[prs_matrix]]$residuals$IID
+merged_dat <- merge(ROSmaster,pca_dat,by="IID")
+merged_dat <- merge(merged_dat,results.S[[prs_matrix]]$residuals)
+
+
+############
+pc5_mod <- lm(merged_dat$cogn_global_random_slope~merged_dat$PC5)
+summary(pc5_mod) # R2 = 0.03866, P-val < 2.2e-16
+prs_mod <- lm(merged_dat$cogn_global_random_slope~merged_dat$`IC_Alzheimer's_disease_h0.14431_n910`)
+summary(prs_mod) # R2 = 0.04586, P-val < 2e-16
+
+
+pc5_7_mod <- lm(merged_dat$cogn_global_random_slope~merged_dat$PC5+merged_dat$PC7)
+summary(pc5_7_mod) # R2 = 0.04234, P-val-PC5 < 2.2e-16, P-val-PC7=0.00671
+
+pc1.10_mod <- lm(merged_dat$cogn_global_random_slope~merged_dat$PC1+merged_dat$PC2+merged_dat$PC3+
+                             merged_dat$PC4+merged_dat$PC5+merged_dat$PC6+merged_dat$PC7+
+                             merged_dat$PC8+merged_dat$PC9+merged_dat$PC10)
+summary(pc1.10_mod) # R2 = 0.05094
+
+#############
+pc5_mod <- lm(merged_dat$amyloid_sqrt~merged_dat$PC5)
+summary(pc5_mod) # R2 = 0.05296, P-val < 2.2e-16
+prs_mod <- lm(merged_dat$amyloid_sqrt~merged_dat$`IC_Alzheimer's_disease_h0.14431_n910`)
+summary(prs_mod) # R2 = 0.06859, P-val < 2e-16
+
+pc5_7_mod <- lm(merged_dat$amyloid_sqrt~merged_dat$PC5+merged_dat$PC7)
+summary(pc5_7_mod) # R2 = 0.06117, P-val-PC5 < 2.2e-16, P-val-PC7=0.00101
+
+pc1.10_mod <- lm(merged_dat$amyloid_sqrt~merged_dat$PC1+merged_dat$PC2+merged_dat$PC3+
+                                 merged_dat$PC4+merged_dat$PC5+merged_dat$PC6+merged_dat$PC7+
+                                 merged_dat$PC8+merged_dat$PC9+merged_dat$PC10)
+summary(pc1.10_mod) # R2 = 0.07712
+#############
+pc5_mod <- lm(merged_dat$tangles_sqrt~merged_dat$PC5)
+summary(pc5_mod) # R2 = 0.02876, P-val = 1.51e-09
+prs_mod <- lm(merged_dat$tangles_sqrt~merged_dat$`IC_Alzheimer's_disease_h0.14431_n910`)
+summary(prs_mod) # R2 = 0.04336, P-val < 9.458e-14
+
+pc5_7_mod <- lm(merged_dat$tangles_sqrt~merged_dat$PC5+merged_dat$PC7)
+summary(pc5_7_mod) # R2 = 0.03534, P-val-PC5 < 1.3e-09, P-val-PC7=0.00356
+
+pc1.10_mod <- lm(merged_dat$tangles_sqrt~merged_dat$PC1+merged_dat$PC2+merged_dat$PC3+
+                                 merged_dat$PC4+merged_dat$PC5+merged_dat$PC6+merged_dat$PC7+
+                                 merged_dat$PC8+merged_dat$PC9+merged_dat$PC10)
+summary(pc1.10_mod) # R2 = 0.04929
