@@ -15,7 +15,7 @@ primary_resid_data_GEN <- function(cum=TRUE,
                                    cor_thresh =0.8) {
                 # Reading ROS/MAP phenotype dataset
                 ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
-                # Reading phenotype manifest
+                # Reading Filtered PNUKBB manifest
                 meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/code/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated.csv")
                 # Reading PCA of the ROS/MAP Genotype dataset
                 geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/PCA_Genotype/geno_qc.eigenvec_new.txt",header=F)
