@@ -117,35 +117,43 @@ pca_association <- function(MHC,
                                 if(isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_MHC_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PCA/No_MHC/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Cum/No_MHC/"
                                 }
                                 if(!isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_APOE_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PCA/No_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Cum/No_APOE/"
                                 }
                                 if(isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_MHC_APOE_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PCA/No_MHC_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Cum/No_MHC_APOE/"
                                 }
                                 if(!isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PCA/With_MHC_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Cum/With_MHC_APOE/"
                                 }
                 } else {
                                 if(isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PRS_PRSice_No_MHC_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PCA/No_MHC/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Non_cum/No_MHC/"
                                 }
                                 if(!isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PRS_PRSice_No_APOE_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PCA/No_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Non_cum/No_APOE/"
                                 }
                                 if(isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PRS_PRSice_No_MHC_APOE_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PCA/No_MHC_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Non_cum/No_MHC_APOE/"
                                 }
                                 if(!isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PRS_PRSice_Resid/"
                                                 path_to_save = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Non_Cum_P-val/PCA/With_MHC_APOE/"
+                                                path_to_save_plot = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Code/Plots/PCA/Non_cum/With_MHC_APOE/"
                                 }
                 }
                 
@@ -202,17 +210,18 @@ pca_association <- function(MHC,
                                                        n=nvalues,
                                                        fdr=p.adjust(pvalues))
                                 
-                                if((pc == 'PCAresults_p_val_1.rds')|
-                                   (pc == "PCAresults_p_val_1e-05.rds")|
-                                   (pc == "PCAresults_p_val_1e-06.rds")|
-                                   (pc == "PCAresults_p_val_1e-07.rds")|
-                                   (pc == "PCAresults_p_val_5e-08.rds")|
-                                   (pc == "PCAresults_p_val_1e-08.rds")|
-                                   (pc == "PCAresults_p_val_1e-09.rds")|
-                                   (pc == "PCAresults_p_val_5e-05.rds")|
-                                   (pc == "PCAresults_p_val_5e-06.rds")|
-                                   (pc == "PCAresults_p_val_5e-07.rds")|
-                                   (pc == "PCAresults_p_val_5e-09.rds")){
+                                if((pc == 'RESIDresults_p_val_1.rds')|
+                                   (pc == "RESIDresults_p_val_1e-05.rds")|
+                                   (pc == "RESIDresults_p_val_1e-06.rds")|
+                                   (pc == "RESIDresults_p_val_1e-07.rds")|
+                                   (pc == "RESIDresults_p_val_5e-08.rds")|
+                                   (pc == "RESIDresults_p_val_1e-08.rds")|
+                                   (pc == "RESIDresults_p_val_1e-09.rds")|
+                                   (pc == "RESIDresults_p_val_5e-05.rds")|
+                                   (pc == "RESIDresults_p_val_5e-06.rds")|
+                                   (pc == "RESIDresults_p_val_5e-07.rds")|
+                                   (pc == "RESIDresults_p_val_5e-09.rds")){
+                                                p_val <- paste0(unlist(strsplit(pc, "[_.]"))[4])
                                                 assocres$colour <- ifelse(assocres$b < 0, "Negative effect","Positive effect")
                                                 g <- ggplot(data=assocres, aes(x=pheno,y=-log10(p),group=pc))+
                                                                 geom_bar(stat="identity",position="dodge",aes(fill = colour))+
@@ -224,8 +233,12 @@ pca_association <- function(MHC,
                                                                 theme_minimal()+
                                                                 theme(axis.text.x=element_text(angle = -45, hjust = 0))+
                                                                 ggtitle(paste0('PRSs at P-value threshhold of',"\n",
-                                                                               paste0(unlist(strsplit(pc, "[_.]"))[4])))
+                                                                               p_val))
+                                                ggsave(paste0(path_to_save_plot,"Associations_top_",PCnum,"_PCs_at_", p_val,".jpg"), 
+                                                       width = 54, height = 27, units = "cm")
                                 } else {
+                                                p_val <- paste0(unlist(strsplit(pc, "[_.]"))[4], '.',
+                                                               unlist(strsplit(pc, "[_.]"))[5])
                                                 assocres$colour <- ifelse(assocres$b < 0, "Negative effect","Positive effect")
                                                 g <- ggplot(data=assocres, aes(x=pheno,y=-log10(p),group=pc))+
                                                                 geom_bar(stat="identity",position="dodge",aes(fill = colour))+
@@ -237,12 +250,13 @@ pca_association <- function(MHC,
                                                                 theme_minimal()+
                                                                 theme(axis.text.x=element_text(angle = -45, hjust = 0))+
                                                                 ggtitle(paste0('PRSs at P-value threshhold of',"\n",
-                                                                               paste0(unlist(strsplit(pc, "[_.]"))[4], '.',
-                                                                                      unlist(strsplit(pc, "[_.]"))[5])))
+                                                                               p_val))
+                                                ggsave(paste0(path_to_save_plot,"Associations_top_",PCnum,"_PCs_at_", p_val,".jpg"), 
+                                                       width = 54, height = 27, units = "cm")
                                                 
                                 }
                                 
-                                results.G[[prs_matrix]] <- list(pc= respca,
+                                results.G[[p_val]] <- list(pc= respca,
                                                                 resultsols=assocres,
                                                                 plot=g)
                 }
@@ -299,8 +313,7 @@ pca_contribution <- function(MHC,
                                 print(p)
                                 respca <- results.G[[p]]$pc
                                 res.var <- get_pca_var(respca)
-                                for (pcnum in PCnum){
-                                                print(pcnum)
+                                for (pcnum in 1:PCnum){
                                                 var <-sum(summary(respca)$importance[2,pcnum])*100 
                                                 ### get contributing PRS for given PC
                                                 pc_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
@@ -309,15 +322,14 @@ pca_contribution <- function(MHC,
                                                 # represents the quality of representation for variables on the factor map. It’s calculated as the squared coordinates: var.cos2 = var.coord * var.coord.
                                                 
                                                 # contains the contributions (in percentage) of the variables to the principal components. The contribution of a variable (var) to a given principal component is (in percentage) : (var.cos2 * 100) / (total cos2 of the component).
-                                                ggplot(pc_top20, aes(x=reorder(phenotypes, Contribution), y=Contribution)) +
+                                                g <- ggplot(pc_top20, aes(x=reorder(phenotypes, Contribution), y=Contribution)) +
                                                                 geom_bar(stat="identity",position="dodge")+
                                                                 theme_minimal()+
                                                                 theme(axis.text.x=element_text(angle = -90, hjust = 0))+
                                                                 ggtitle(paste0('Contributions (%) of top 20 variables','\n', 'to PC',pcnum, 
                                                                                ' (',var,'% variation explained',')'))+
                                                                 coord_flip()
-                                                ggsave(paste0(path_to_save,
-                                                              unlist(strsplit(p,'[.]'))[1],'_',pcnum,"_top11_cont.jpg"), width = 30, height = 27, units = "cm")
+                                                ggsave(paste0(path_to_save,"top_",PCnum,"_contribution_at_", p ,"_threshold_PC_",pcnum,".jpg"), width = 30, height = 37, units = "cm")
                                 }
                 }
 }
