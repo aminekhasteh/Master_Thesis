@@ -17,6 +17,9 @@ primary_resid_data_GEN <- function(cum=TRUE,
                 ROSmaster <- readRDS("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/ROSMAP_Phenotype/ROSmaster.rds")
                 # Reading Filtered PNUKBB manifest
                 meta_pheno <- read.csv("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/code/Pan_UKBB/ukbb_manifest_EUR_h2_05_both_sex_selected_pheno_annotated.csv")
+                # Reading phenos we want to remove additionally
+                pheno_remove <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/code/Pan_UKBB/phenos_to_remove.txt")
+                names(pheno_remove) <- "pheno"
                 # Reading PCA of the ROS/MAP Genotype dataset
                 geno_pcs <- read.table("/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/PCA_Genotype/geno_qc.eigenvec_new.txt",header=F)
                 names(geno_pcs) <- c("FID","IID",paste0("genoPC",seq(1:10)))
@@ -24,22 +27,36 @@ primary_resid_data_GEN <- function(cum=TRUE,
                 # ----------------------------------------------------------- # Reading PRS matrices # ----------------------------------------------------------- #                                                                                       #|
                 
                 if(isTRUE(cum)){
-                                snp_categories <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
-                                                     "p_val_0_005.txt","p_val_0_001.txt","p_val_0_0005.txt","p_val_0_0001.txt",
-                                                     "p_val_5e-05.txt","p_val_1e-05.txt","p_val_5e-06.txt","p_val_1e-06.txt",
-                                                     "p_val_5e-07.txt","p_val_1e-07.txt","p_val_5e-08.txt","p_val_1e-08.txt",
-                                                     "p_val_5e-09.txt")
                                 if(isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_MHC"
+                                                snp_categories <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                                                                    "p_val_0_005.txt","p_val_0_001.txt","p_val_0_0005.txt","p_val_0_0001.txt",
+                                                                    "p_val_5e-05.txt","p_val_1e-05.txt","p_val_5e-06.txt","p_val_1e-06.txt",
+                                                                    "p_val_5e-07.txt","p_val_1e-07.txt","p_val_5e-08.txt","p_val_1e-08.txt",
+                                                                    "p_val_5e-09.txt")
                                 }
                                 if(!isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_APOE"
+                                                snp_categories <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                                                                    "p_val_0_005.txt","p_val_0_001.txt","p_val_0_0005.txt","p_val_0_0001.txt",
+                                                                    "p_val_5e-05.txt","p_val_1e-05.txt","p_val_5e-06.txt","p_val_1e-06.txt",
+                                                                    "p_val_5e-07.txt","p_val_1e-07.txt","p_val_5e-08.txt","p_val_1e-08.txt",
+                                                                    "p_val_5e-09.txt")
                                 }
                                 if(isTRUE(MHC) & isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice_No_MHC_APOE"
+                                                snp_categories <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                                                                    "p_val_0_005.txt","p_val_0_001.txt","p_val_0_0005.txt","p_val_0_0001.txt",
+                                                                    "p_val_5e-05.txt","p_val_1e-05.txt","p_val_5e-06.txt","p_val_1e-06.txt",
+                                                                    "p_val_5e-07.txt","p_val_1e-07.txt","p_val_5e-08.txt","p_val_1e-08.txt",
+                                                                    "p_val_5e-09.txt")
                                 }
                                 if(!isTRUE(MHC) & !isTRUE(APOE)){
                                                 path = "/Users/amink/OneDrive/Documents/Current Jobs/Masters Thesis/Thesis_Project/Datasets/CLUMP_500_0.2/Cum_P-val/PRS_PRSice"
+                                                snp_categories <- c("p_val_1.txt","p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
+                                                                    "p_val_0_005.txt","p_val_0_001.txt","p_val_0_0005.txt","p_val_0_0001.txt",
+                                                                    "p_val_5e-05.txt","p_val_1e-05.txt","p_val_5e-06.txt","p_val_1e-06.txt",
+                                                                    "p_val_5e-07.txt","p_val_1e-07.txt","p_val_5e-08.txt")
                                 }
                 } else {
                                 snp_categories <- c("p_val_0_1.txt","p_val_0_05.txt","p_val_0_01.txt",
@@ -98,14 +115,13 @@ primary_resid_data_GEN <- function(cum=TRUE,
                                 res <- t(residuals.MArrayLM(fit,y = t(formod[,3:ncol(prs_list[[thresh]])])))
                                 
                                 res <- scale(res,scale=TRUE)
-                                
+
                                 #Finding columns with NAs
                                 na_cols <- colnames(res)[ apply(res, 2, anyNA) ]
                                 print(paste0('number of columns with NAs ',length(na_cols)))
                                 res <- res[,which(!colnames(res) %in% na_cols)]
                                 
                                 #SNP count flag:
-                                
                                 if (isTRUE(use_snp_count)){
                                                 pheno_failed <- names(snp_count[,which(snp_count[which(snp_count$category == thresh),
                                                 ] < snp_count_n)])[-sum(snp_count[which(snp_count$category == thresh),
@@ -114,13 +130,32 @@ primary_resid_data_GEN <- function(cum=TRUE,
                                                 
                                                 if (length(pheno_failed)>0) {
                                                                 lowsnpcount.names <- pheno_failed
-                                                                res.clean <- res[, !colnames(res) %in% pheno_failed]
+                                                                res <- res[, !colnames(res) %in% pheno_failed]
                                                 } else {
                                                                 lowsnpcount.names <- NA
-                                                                res.clean <- res
+                                                                res <- res
                                                 }
                                                 
-                                } else {res.clean <- res}
+                                }
+                                
+                                # Change the phenotype labels
+                                i1 <- match(colnames(res), meta_pheno$phenocode_annotate_lst)
+                                i2 <- !is.na(i1) # to take care of non matches which are NA
+                                colnames(res)[i2] <- meta_pheno$new_pheno_annot[i1[i2]]
+                                
+                                # Removing extra phenotypes we selected manually
+                                phenos_to_remove <- which(colnames(res) %in% pheno_remove$pheno)
+                                
+                                if (length(phenos_to_remove)>0) {
+                                                phenos_to_remove.phenos.names <- pheno_remove$pheno[which(pheno_remove$pheno %in% colnames(res))]
+                                                res.clean <- res[,-phenos_to_remove]
+                                } else {
+                                                phenos_to_remove.phenos.names <- NA
+                                                res.clean <- res
+                                }
+                                
+                                print(paste0('removing ',length(phenos_to_remove),' acute diseases, except for acute mental or nueroligical phenotypes, and other administrative phenotypes, selected manually.'))
+
 
                                 # flag multimodal scores - Using dip test
                                 print(paste("Flagging scores with multimodal distributions"))
@@ -138,30 +173,6 @@ primary_resid_data_GEN <- function(cum=TRUE,
                                                 res.clean <- res.clean
                                 }
 
-                                # Change the phenotype labels
-                                
-                                
-                                
-                                i1 <- match(colnames(res.clean), meta_pheno$phenocode_annotate_lst)
-                                i2 <- !is.na(i1) # to take care of non matches which are NA
-                                colnames(res.clean)[i2] <- meta_pheno$new_pheno_annot[i1[i2]]
-                                
-                                
-                                
-                                # Removing phenotypes with acute in them (except for mental health and neurological)
-                                l <- meta_pheno$new_pheno_annot[which(meta_pheno$category_manual != "mental_disorders_neurological")]
-                                to_remove_acute <- l[which(grepl( 'Acute', l, fixed = TRUE))]
-                                acute <- which(colnames(res.clean) %in% to_remove_acute)
-                                
-                                if (length(acute)>0) {
-                                                acute.phenos.names <- to_remove_acute
-                                                res.clean <- res.clean[,-acute]
-                                } else {
-                                                acute.phenos.names <- NA
-                                                res.clean <- res.clean
-                                }
-                                
-                                print(paste0('removing ',length(to_remove_acute),' acute diseases, except for acute mental or nueroligical phenotypes.'))
                                 
                                 # Use correlation test to remove duplicated or almost duplicated phenotypes
                                 
@@ -211,8 +222,7 @@ primary_resid_data_GEN <- function(cum=TRUE,
                                 
                                 allres <- list(residuals=res.clean,
                                                multimodal=multimodal.names,
-                                               highlycorrelated=check,
-                                               removed.acute.phenos=acute.phenos.names)
+                                               highlycorrelated=check)
                                 
                                 row <- c(pval,(ncol(prs_list[[thresh]])-2),length(pheno_failed),length(multimodal),length(to_remove),dim(res.clean)[2])
                                 details <- rbind(details,row)
@@ -232,3 +242,4 @@ primary_resid_data_GEN <- function(cum=TRUE,
 
 primary_resid_data_GEN(cum = TRUE, MHC = TRUE, APOE = FALSE, use_snp_count = TRUE, snp_count_n = 5, cor_thresh = 0.8)
 primary_resid_data_GEN(cum = TRUE, MHC = TRUE, APOE = TRUE, use_snp_count = TRUE, snp_count_n = 5, cor_thresh = 0.8)
+primary_resid_data_GEN(cum = TRUE, MHC = FALSE, APOE = FALSE, use_snp_count = TRUE, snp_count_n = 5, cor_thresh = 0.8)

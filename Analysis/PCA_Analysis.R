@@ -184,7 +184,12 @@ pca_association <- function(MHC,
                                                 "neuroticism_12","anxiety_20items","cesdsum_lv","educ","mf3123","it3123","vm3123","pput3123",
                                                 "stroke_ever","thyroid_ever","headinjrloc_ever","diabetes_sr_rx_ever","cancer_ever","hypertension_ever")
                                 
-                                PClist <- paste0("PC",seq(1:PCnum))
+                                if (dim(summary(respca)$importance)[2] <= PCnum){
+                                                PClist <- paste0("PC",seq(1:dim(summary(respca)$importance)[2]))
+                                } else {
+                                                PClist <- paste0("PC",seq(1:PCnum))
+                                }
+                                
                                 index <- 1
                                 pvalues <- NULL
                                 bvalues <- NULL
@@ -313,7 +318,14 @@ pca_contribution <- function(MHC,
                                 print(p)
                                 respca <- results.G[[p]]$pc
                                 res.var <- get_pca_var(respca)
-                                for (pcnum in 1:PCnum){
+                                
+                                if (dim(summary(respca)$importance)[2] <= PCnum){
+                                                N <- dim(summary(respca)$importance)[2]
+                                } else {
+                                                N <- PCnum
+                                }
+                                
+                                for (pcnum in 1:N){
                                                 var <-sum(summary(respca)$importance[2,pcnum])*100 
                                                 ### get contributing PRS for given PC
                                                 pc_top20 <- as.data.frame(cbind(res.var$cos2[,pcnum][order(res.var$cos2[,pcnum],decreasing = T)][1:20],res.var$contrib[,pcnum][order(res.var$contrib[,pcnum],decreasing = T)][1:20]))
@@ -338,3 +350,7 @@ pca_contribution <- function(MHC,
 pca_results_GEN(MHC = TRUE, APOE = TRUE)
 pca_association(MHC = TRUE, APOE = TRUE, PCnum = 20)
 pca_contribution(MHC = TRUE, APOE = TRUE, PCnum = 20)
+
+pca_results_GEN(MHC = TRUE, APOE = FALSE)
+pca_association(MHC = TRUE, APOE = FALSE, PCnum = 20)
+pca_contribution(MHC = TRUE, APOE = FALSE, PCnum = 20)
